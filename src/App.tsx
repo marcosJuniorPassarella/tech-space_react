@@ -1,7 +1,13 @@
+import { Routes, Route } from "react-router-dom";
+import { RoutesPaths } from "./models/enums/routesPaths";
+import Login from "./pages/Login";
+
 function App() {
   return (
     <>
-      <h3>Hello Vite</h3>
+      <Routes>
+        <Route path={RoutesPaths.Login} element={<Login />} />
+      </Routes>
     </>
   );
 }
