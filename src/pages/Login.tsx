@@ -4,6 +4,9 @@ import loginImg from "../assets/daniel-korpai-HyTwtsk8XqA-unsplash.jpg";
 function Login() {
   const [displayLogin, setDisplayLogin] = useState(true);
   const [displaySignUp, setDisplaySignUp] = useState(false);
+  const [loginPasswordInput, setLoginPasswordInput] = useState("");
+  const [loginEmailInput, setLoginEmailInput] = useState("");
+  const [isLoginFormValid, setIsLoginFormValid] = useState(true);
 
   const handleDisplayCreateAccount = (
     event: React.MouseEvent<HTMLButtonElement, MouseEvent>
@@ -21,6 +24,42 @@ function Login() {
 
     setDisplayLogin(true);
     setDisplaySignUp(false);
+  };
+
+  const handleLoginInputEmailForm = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const eventTarget = event.currentTarget as HTMLInputElement;
+    const eventValue = eventTarget.value;
+
+    eventValue && setLoginEmailInput(eventValue);
+  };
+
+  const handleLoginInputPasswordForm = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const eventTarget = event.currentTarget as HTMLInputElement;
+    const eventValue = eventTarget.value;
+
+    eventValue && setLoginPasswordInput(eventValue);
+  };
+
+  const handleExecuteLogin = (
+    event: React.MouseEvent<HTMLFormElement, MouseEvent>
+  ) => {
+    event.preventDefault();
+
+    loginEmailInput.trim().length > 0 && loginPasswordInput.trim().length > 0
+      ? setIsLoginFormValid(true)
+      : setIsLoginFormValid(false);
+
+    console.log("DADOS DO INPUT", {
+      email: loginEmailInput,
+      password: loginPasswordInput,
+    });
+
+    setLoginEmailInput("");
+    setLoginPasswordInput("");
   };
 
   return (
@@ -41,13 +80,18 @@ function Login() {
         </div>
 
         {displayLogin && (
-          <form className="max-w-[400px] w-full mx-auto bg-purple-600 p-8 rounded-lg">
+          <form
+            onSubmit={handleExecuteLogin}
+            className="max-w-[400px] w-full mx-auto bg-purple-600 p-8 rounded-lg"
+          >
             <h2 className="text-4xl dark:text-white font-bold text-center">
               Login
             </h2>
             <div className="flex flex-col text-white py-2">
               <label>Email</label>
               <input
+                value={loginEmailInput}
+                onChange={handleLoginInputEmailForm}
                 type="email"
                 className="rounded-lg mt-2 p-2 bg-purple-700 focus:bg-orange-700 focus:outline-none focus:placeholder-transparent border-2 border-purple-800"
                 placeholder="Digite seu email"
@@ -59,6 +103,8 @@ function Login() {
                 type="password"
                 className="rounded-lg mt-2 p-2 bg-purple-700 focus:bg-orange-700 focus:outline-none focus:placeholder-transparent border-2 border-purple-800"
                 placeholder="Digite sua senha"
+                value={loginPasswordInput}
+                onChange={handleLoginInputPasswordForm}
                 maxLength={10}
                 minLength={6}
               />
@@ -73,6 +119,7 @@ function Login() {
               </button>
             </div>
             <button
+              disabled={!isLoginFormValid}
               type="submit"
               className="w-full my-5 py-2 bg-orange-500 shadow-lg enabled:hover:shadow-orange-500/40 text-white font-semibold disabled:bg-orange-400 disable:shadow-none enabled:shadow-orange-500/50"
             >
