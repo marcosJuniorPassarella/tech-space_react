@@ -1,5 +1,8 @@
 import React, { useState } from "react";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
 import { auth } from "../firebase/firebaseConection";
 import { toast } from "react-toastify";
 import "react-toastify/ReactToastify.css";
@@ -50,14 +53,34 @@ function Login() {
     eventValue && state(eventValue);
   };
 
-  const handleExecuteLogin = (
+  const handleExecuteLogin = async (
     event: React.MouseEvent<HTMLFormElement, MouseEvent>
   ) => {
+    setIsLoading(true);
     event.preventDefault();
 
     loginEmailInput.trim().length > 0 && loginPasswordInput.trim().length > 0
       ? setIsLoginFormValid(true)
       : setIsLoginFormValid(false);
+
+    await signInWithEmailAndPassword(auth, loginEmailInput, loginPasswordInput)
+      .then(() => {
+        toast.success("Bem vindo de volta");
+        setDisplayLogin(true);
+        setDisplaySignUp(false);
+        setIsLoading(false);
+      })
+      .catch((err: { code: string }) => {
+        setIsLoading(false);
+        if (err.code === "auth/wrong-password") {
+          toast.error("Senha incorreta!");
+        } else if (err.code === "auth/user-not-found") {
+          toast.error("Email não existe, crie sua conta!");
+        } else {
+          toast.error("Erro ao fazer login!");
+          setIsLoginFormValid(false);
+        }
+      });
 
     setLoginEmailInput("");
     setLoginPasswordInput("");
@@ -167,10 +190,11 @@ function Login() {
             </div>
             {!isLoginFormValid && erroAlert}
             <button
+              disabled={isLoading}
               type="submit"
               className="w-full my-5 py-2 bg-orange-500 shadow-lg enabled:hover:shadow-orange-500/40 text-white font-semibold disabled:bg-orange-400 disable:shadow-none enabled:shadow-orange-500/50"
             >
-              Fazer Login
+              {isLoading ? "Carregando..." : "Fazer Login"}
             </button>
           </form>
         )}
