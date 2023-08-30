@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase/firebaseConection";
+import { toast } from "react-toastify";
+import "react-toastify/ReactToastify.css";
 import loginImg from "../assets/daniel-korpai-HyTwtsk8XqA-unsplash.jpg";
 
 function Login() {
@@ -80,15 +82,15 @@ function Login() {
         setDisplayLogin(true);
         setDisplaySignUp(false);
         setIsLoading(false);
-        alert("Usuário criado!");
+        toast.success("Usuário criado com sucesso!");
       })
       .catch((err: { code: string }) => {
         if (err.code === "auth/weak-password") {
-          alert("Senha muito fraca, utilize outra senha!");
+          toast.error("Senha muito fraca, utilize outra senha!");
         } else if (err.code === "auth/email-already-in-use") {
-          alert("Email já cadastrado!");
+          toast.error("Email já cadastrado!");
         } else {
-          alert("Erro ao criar usuário!");
+          toast.error("Erro ao criar usuário!");
         }
 
         setIsLoading(false);
