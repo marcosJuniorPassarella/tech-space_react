@@ -7,7 +7,7 @@ import { auth } from "../firebase/firebaseConection";
 function Navbar() {
   const [isLoading, setIsLoading] = useState(false);
   const [openModal, setOpenModal] = useState(false);
-  const [isNewPostFormValidad, setIsNewPostFormValidad] = useState(true);
+  const [isNewPostFormValid, setIsNewPostFormValid] = useState(true);
   const [progress, setProgress] = useState(0);
   const [imgUrl, setImgUrl] = useState("");
   const cancelButtonRef = useRef(null);
@@ -49,6 +49,7 @@ function Navbar() {
         </div>
 
         <button
+          onClick={() => setOpenModal(!openModal)}
           type="button"
           className="inline-flex items-center rounded-md bg-orange-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-orange-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600 border-0 mt-4 md:mt-0"
         >
@@ -86,7 +87,108 @@ function Navbar() {
             leave="ease-in duration-200"
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
-          ></Transition.Child>
+          >
+            <div className="fixed inset-0 bg-purple-700 bg-opacity-75 transition-opacity" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 z-10 overflow-y-auto">
+            <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                enterTo="opacity-100 translate-y-0 sm:scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+                leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+              >
+                <Dialog.Panel>
+                  <div className="flex flex-col justify-center h-min">
+                    <form className="max-w-[400px] w-full mx-auto bg-purple-600 p-8 px-8 rounded-lg">
+                      <h2 className="text-3xl mb-5 dark:text-white font-bold text-center">
+                        Criar Post
+                      </h2>
+
+                      <div className="flex flex-col text-start text-white py-2">
+                        <label>Autor</label>
+                        <input
+                          type="text"
+                          placeholder="Digite o seu nome"
+                          className={`w-full rounded-lg mt-2 p-2 ${
+                            isNewPostFormValid
+                              ? `bg-purple-700 focus:bg-purple-800 `
+                              : `bg-red-700  focus:bg-red-800`
+                          }  bg-purple-700 focus:bg-purple-800 border-2 border-purple-800 focus:border-orange-700 focus:outline-none focus:placeholder-transparent`}
+                        />
+                      </div>
+
+                      <div className="flex flex-col text-start text-white py-2">
+                        <label>Título</label>
+                        <input
+                          type="text"
+                          placeholder="Digite o título"
+                          className={`w-full rounded-lg mt-2 p-2 ${
+                            isNewPostFormValid
+                              ? `bg-purple-700 focus:bg-purple-800 `
+                              : `bg-red-700  focus:bg-red-800`
+                          }  bg-purple-700 focus:bg-purple-800 border-2 border-purple-800 focus:border-orange-700 focus:outline-none focus:placeholder-transparent`}
+                        />
+                      </div>
+
+                      <div className="flex flex-col text-start text-white py-2">
+                        <label>Conteúdo</label>
+                        <textarea
+                          placeholder="Digite o conteúdo"
+                          className={`w-full rounded-lg mt-2 p-2 ${
+                            isNewPostFormValid
+                              ? `bg-purple-700 focus:bg-purple-800 `
+                              : `bg-red-700  focus:bg-red-800`
+                          }  bg-purple-700 focus:bg-purple-800 border-2 border-purple-800 focus:border-orange-700 focus:outline-none focus:placeholder-transparent`}
+                        />
+                      </div>
+
+                      <div className="flex flex-col text-start text-white py-2">
+                        <label>Capa</label>
+                        <input
+                          type="file"
+                          placeholder="Digite o conteúdo"
+                          className="w-full cursor-pointer rounded-lg mt-2 p-2 bg-purple-700 focus:bg-purple-800 border-2 border-purple-800 focus:border-orange-700 focus:outline-none focus:placeholder-transparent"
+                        />
+                      </div>
+
+                      {!imgUrl && isLoading && (
+                        <progress value={progress} max="100" />
+                      )}
+
+                      {imgUrl && !isLoading && (
+                        <img
+                          src={imgUrl}
+                          alt="Imagem de capa do post"
+                          width={200}
+                        />
+                      )}
+
+                      <button
+                        disabled={isLoading}
+                        type="submit"
+                        className="w-full my-5 py-2 bg-orange-500 shadow-lg  enabled:hover:shadow-orange-500/40 text-white font-semibold rounded-lg disabled:bg-orange-400 disabled:shadow-none enabled:shadow-orange-500/50"
+                      >
+                        {isLoading ? "Criando post..." : "Criar"}
+                      </button>
+                      <button
+                        onClick={() => setOpenModal(false)}
+                        disabled={isLoading}
+                        type="button"
+                        className="w-full py-2 bg-red-500 shadow-lg  enabled:hover:shadow-red-500/40 text-white font-semibold rounded-lg disabled:bg-red-400 disabled:shadow-none enabled:shadow-red-500/50"
+                      >
+                        Cancelar
+                      </button>
+                    </form>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
         </Dialog>
       </Transition.Root>
     </>
