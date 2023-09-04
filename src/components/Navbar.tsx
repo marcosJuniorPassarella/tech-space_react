@@ -1,8 +1,17 @@
-import { signOut } from "firebase/auth";
+import { useState, useRef, Fragment } from "react";
+import { Transition, Dialog } from "@headlessui/react";
 import { toast } from "react-toastify";
+import { signOut } from "firebase/auth";
 import { auth } from "../firebase/firebaseConection";
 
 function Navbar() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
+  const [isNewPostFormValidad, setIsNewPostFormValidad] = useState(true);
+  const [progress, setProgress] = useState(0);
+  const [imgUrl, setImgUrl] = useState("");
+  const cancelButtonRef = useRef(null);
+
   const handleSignOut = async () => {
     await signOut(auth)
       .then(() => toast.success("Logout feito com sucesso!"))
@@ -60,6 +69,26 @@ function Navbar() {
           Criar post
         </button>
       </div>
+
+      {/* MODAL DE CRIAR POSTS */}
+      <Transition.Root show={openModal} as={Fragment}>
+        <Dialog
+          as="div"
+          className="relative z-10"
+          initialFocus={cancelButtonRef}
+          onClose={setOpenModal}
+        >
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          ></Transition.Child>
+        </Dialog>
+      </Transition.Root>
     </>
   );
 }
