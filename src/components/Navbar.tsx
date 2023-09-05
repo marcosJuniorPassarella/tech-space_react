@@ -10,12 +10,26 @@ function Navbar() {
   const [isNewPostFormValid, setIsNewPostFormValid] = useState(true);
   const [progress, setProgress] = useState(0);
   const [imgUrl, setImgUrl] = useState("");
+  const [postAuthorInput, setPostAuthorInput] = useState("");
+  const [postTitleInput, setPostTitleInput] = useState("");
+  const [postContentInput, setPostContentInput] = useState("");
   const cancelButtonRef = useRef(null);
 
   const handleSignOut = async () => {
     await signOut(auth)
       .then(() => toast.success("Logout feito com sucesso!"))
       .catch(() => toast.error("Ocorreu um erro, tente novamente!"));
+  };
+
+  const handleInputForm = (
+    event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
+    state: React.Dispatch<React.SetStateAction<string>>
+  ) => {
+    const eventTarget = event.currentTarget as HTMLInputElement;
+    const eventValue = eventTarget.value;
+
+    eventValue && state(eventValue);
+    console.log(eventValue);
   };
 
   return (
@@ -112,6 +126,9 @@ function Navbar() {
                       <div className="flex flex-col text-start text-white py-2">
                         <label>Autor</label>
                         <input
+                          onChange={(event) =>
+                            handleInputForm(event, setPostAuthorInput)
+                          }
                           type="text"
                           placeholder="Digite o seu nome"
                           className={`w-full rounded-lg mt-2 p-2 ${
@@ -125,6 +142,9 @@ function Navbar() {
                       <div className="flex flex-col text-start text-white py-2">
                         <label>Título</label>
                         <input
+                          onChange={(event) =>
+                            handleInputForm(event, setPostContentInput)
+                          }
                           type="text"
                           placeholder="Digite o título"
                           className={`w-full rounded-lg mt-2 p-2 ${
@@ -138,6 +158,9 @@ function Navbar() {
                       <div className="flex flex-col text-start text-white py-2">
                         <label>Conteúdo</label>
                         <textarea
+                          onChange={(event) =>
+                            handleInputForm(event, setPostContentInput)
+                          }
                           placeholder="Digite o conteúdo"
                           className={`w-full rounded-lg mt-2 p-2 ${
                             isNewPostFormValid
