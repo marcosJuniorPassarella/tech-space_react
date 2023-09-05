@@ -1,8 +1,9 @@
-import { useState, useRef, Fragment } from "react";
+import React, { useState, useRef, Fragment } from "react";
 import { Transition, Dialog } from "@headlessui/react";
 import { toast } from "react-toastify";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { signOut } from "firebase/auth";
-import { auth } from "../firebase/firebaseConection";
+import { auth, storage } from "../firebase/firebaseConection";
 
 function Navbar() {
   const [isLoading, setIsLoading] = useState(false);
@@ -13,6 +14,7 @@ function Navbar() {
   const [postAuthorInput, setPostAuthorInput] = useState("");
   const [postTitleInput, setPostTitleInput] = useState("");
   const [postContentInput, setPostContentInput] = useState("");
+  const [postImgFile, setPostImgFile] = useState<File | null>(null);
   const cancelButtonRef = useRef(null);
 
   const handleSignOut = async () => {
@@ -30,6 +32,33 @@ function Navbar() {
 
     eventValue && state(eventValue);
     console.log(eventValue);
+  };
+
+  const handlePostImageInput = (event: React.FormEvent<HTMLInputElement>) => {
+    const eventTarget = event.target as HTMLInputElement;
+    const file: File | null = eventTarget.files && eventTarget.files[0];
+
+    setPostImgFile(file);
+  };
+
+  const handleCreateNewPost = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsLoading(true);
+
+    if (
+      postTitleInput.trim().length > 0 &&
+      postAuthorInput.trim().length > 0 &&
+      postContentInput.trim().length > 0
+    ) {
+      setIsNewPostFormValid(true);
+    } else {
+      setIsNewPostFormValid(false);
+    }
+
+    if (!postImgFile) return;
+
+    const storageRef = ref(storage, `images/${postImgFile.name}`);
+    const uploadTask = uploadBytesResumable(storageRef, postImgFile);
   };
 
   return (
@@ -118,7 +147,10 @@ function Navbar() {
               >
                 <Dialog.Panel>
                   <div className="flex flex-col justify-center h-min">
-                    <form className="max-w-[400px] w-full mx-auto bg-purple-600 p-8 px-8 rounded-lg">
+                    <form
+                      onSubmit={handleCreateNewPost}
+                      className="max-w-[400px] w-full mx-auto bg-purple-600 p-8 px-8 rounded-lg"
+                    >
                       <h2 className="text-3xl mb-5 dark:text-white font-bold text-center">
                         Criar Post
                       </h2>
@@ -173,6 +205,7 @@ function Navbar() {
                       <div className="flex flex-col text-start text-white py-2">
                         <label>Capa</label>
                         <input
+                          onChange={handlePostImageInput}
                           type="file"
                           placeholder="Digite o conteúdo"
                           className="w-full cursor-pointer rounded-lg mt-2 p-2 bg-purple-700 focus:bg-purple-800 border-2 border-purple-800 focus:border-orange-700 focus:outline-none focus:placeholder-transparent"
