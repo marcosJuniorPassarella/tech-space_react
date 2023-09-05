@@ -3,7 +3,9 @@ import { Transition, Dialog } from "@headlessui/react";
 import { toast } from "react-toastify";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { signOut } from "firebase/auth";
-import { auth, storage } from "../firebase/firebaseConection";
+import { auth, db, storage } from "../firebase/firebaseConection";
+import { Post } from "../models/interfaces/Post";
+import { addDoc, collection } from "firebase/firestore";
 
 function Navbar() {
   const [isLoading, setIsLoading] = useState(false);
@@ -59,6 +61,73 @@ function Navbar() {
 
     const storageRef = ref(storage, `images/${postImgFile.name}`);
     const uploadTask = uploadBytesResumable(storageRef, postImgFile);
+    uploadTask.on(
+      "state_changed",
+      (snapshot) => {
+        const progress =
+          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        setProgress(progress);
+      },
+      () => {
+        toast.error("Ocorreu um erro!");
+      },
+      async () => {
+        void (await getDownloadURL(uploadTask.snapshot.ref)
+          .then(async (url) => {
+            if (url) {
+              setImgUrl(url);
+              const currentDate = getCurrentDate();
+              const postObject: Post = {
+                author: postAuthorInput,
+                title: postTitleInput,
+                content: postContentInput,
+                imageUrl: url,
+                userEmail: "teste@teste.com",
+                creationDate: currentDate,
+              };
+
+              await addDoc(collection(db, "posts"), postObject)
+                .then(() => {
+                  setIsLoading(false);
+                  setPostTitleInput("");
+                  setPostContentInput("");
+                  setPostAuthorInput("");
+                  setImgUrl("");
+                  setProgress(0);
+                  setIsNewPostFormValid(true);
+                  setOpenModal(false);
+                  toast.success("Post criado com sucesso!");
+                })
+                .catch(() => {
+                  setIsLoading(false);
+                  setPostTitleInput("");
+                  setPostContentInput("");
+                  setPostAuthorInput("");
+                  setImgUrl("");
+                  setProgress(0);
+                  setOpenModal(false);
+                  toast.error("Erro ao criar o post, tente novamente!");
+                });
+            }
+            // Buscar os posts para exibir atualizado na tela de posts
+          })
+          .catch(() => {
+            setIsLoading(false);
+            toast.error("Erro ao fazer upload da imagem");
+          }));
+      }
+    );
+
+    setIsLoading(false);
+  };
+
+  const getCurrentDate = (): string => {
+    const date = new Date();
+
+    const currentDay = String(date.getDate()).padStart(2, "0");
+    const currentMonth = String(date.getMonth() + 1).padStart(2, "0");
+    const currentYear = date.getFullYear();
+    return `${currentDay}/${currentMonth}/${currentYear}`;
   };
 
   return (
@@ -175,7 +244,7 @@ function Navbar() {
                         <label>Título</label>
                         <input
                           onChange={(event) =>
-                            handleInputForm(event, setPostContentInput)
+                            handleInputForm(event, setPostTitleInput)
                           }
                           type="text"
                           placeholder="Digite o título"
