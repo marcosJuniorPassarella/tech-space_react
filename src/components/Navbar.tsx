@@ -21,7 +21,7 @@ function Navbar() {
   const cancelButtonRef = useRef(null);
   const { email } = useContext(UserEmailContext);
 
-  const handleSignOut = async () => {
+  const handleSignOut = async (): Promise<void> => {
     await signOut(auth)
       .then(() => toast.success("Logout feito com sucesso!"))
       .catch(() => toast.error("Ocorreu um erro, tente novamente!"));
@@ -30,7 +30,7 @@ function Navbar() {
   const handleInputForm = (
     event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
     state: React.Dispatch<React.SetStateAction<string>>
-  ) => {
+  ): void => {
     const eventTarget = event.currentTarget as HTMLInputElement;
     const eventValue = eventTarget.value;
 
@@ -38,89 +38,94 @@ function Navbar() {
     console.log(eventValue);
   };
 
-  const handlePostImageInput = (event: React.FormEvent<HTMLInputElement>) => {
+  const handlePostImageInput = (
+    event: React.FormEvent<HTMLInputElement>
+  ): void => {
     const eventTarget = event.target as HTMLInputElement;
     const file: File | null = eventTarget.files && eventTarget.files[0];
 
     setPostImgFile(file);
   };
 
-  const handleCreateNewPost = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleCreateNewPost = (
+    event: React.FormEvent<HTMLFormElement>
+  ): void => {
     event.preventDefault();
     setIsLoading(true);
 
     if (
       postTitleInput.trim().length > 0 &&
       postAuthorInput.trim().length > 0 &&
-      postContentInput.trim().length > 0
+      postContentInput.trim().length > 0 &&
+      postImgFile !== null
     ) {
       setIsNewPostFormValid(true);
+
+      const storageRef = ref(storage, `images/${postImgFile.name}`);
+      const uploadTask = uploadBytesResumable(storageRef, postImgFile);
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          const progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          setProgress(progress);
+        },
+        () => {
+          toast.error("Ocorreu um erro!");
+        },
+        async () => {
+          void (await getDownloadURL(uploadTask.snapshot.ref)
+            .then(async (url) => {
+              if (url) {
+                setImgUrl(url);
+                const currentDate = getCurrentDate();
+                const postObject: Post = {
+                  author: postAuthorInput,
+                  title: postTitleInput,
+                  content: postContentInput,
+                  imageUrl: url,
+                  userEmail: email,
+                  creationDate: currentDate,
+                };
+
+                await addDoc(collection(db, "posts"), postObject)
+                  .then(() => {
+                    setIsLoading(false);
+                    setPostTitleInput("");
+                    setPostContentInput("");
+                    setPostAuthorInput("");
+                    setImgUrl("");
+                    setProgress(0);
+                    setIsNewPostFormValid(true);
+                    setOpenModal(false);
+                    setPostImgFile(null);
+                    toast.success("Post criado com sucesso!");
+                  })
+                  .catch(() => {
+                    setIsLoading(false);
+                    setPostTitleInput("");
+                    setPostContentInput("");
+                    setPostAuthorInput("");
+                    setImgUrl("");
+                    setProgress(0);
+                    setOpenModal(false);
+                    setPostImgFile(null);
+                    toast.error("Erro ao criar o post, tente novamente!");
+                  });
+              }
+              // Buscar os posts para exibir atualizado na tela de posts
+            })
+            .catch(() => {
+              setIsLoading(false);
+              toast.error("Erro ao fazer upload da imagem");
+            }));
+        }
+      );
     } else {
+      setIsLoading(false);
       setIsNewPostFormValid(false);
+      toast.warn("Preencha os campos corretamente!");
     }
-
-    if (!postImgFile) return;
-
-    const storageRef = ref(storage, `images/${postImgFile.name}`);
-    const uploadTask = uploadBytesResumable(storageRef, postImgFile);
-    uploadTask.on(
-      "state_changed",
-      (snapshot) => {
-        const progress =
-          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        setProgress(progress);
-      },
-      () => {
-        toast.error("Ocorreu um erro!");
-      },
-      async () => {
-        void (await getDownloadURL(uploadTask.snapshot.ref)
-          .then(async (url) => {
-            if (url) {
-              setImgUrl(url);
-              const currentDate = getCurrentDate();
-              const postObject: Post = {
-                author: postAuthorInput,
-                title: postTitleInput,
-                content: postContentInput,
-                imageUrl: url,
-                userEmail: email,
-                creationDate: currentDate,
-              };
-
-              await addDoc(collection(db, "posts"), postObject)
-                .then(() => {
-                  setIsLoading(false);
-                  setPostTitleInput("");
-                  setPostContentInput("");
-                  setPostAuthorInput("");
-                  setImgUrl("");
-                  setProgress(0);
-                  setIsNewPostFormValid(true);
-                  setOpenModal(false);
-                  toast.success("Post criado com sucesso!");
-                })
-                .catch(() => {
-                  setIsLoading(false);
-                  setPostTitleInput("");
-                  setPostContentInput("");
-                  setPostAuthorInput("");
-                  setImgUrl("");
-                  setProgress(0);
-                  setOpenModal(false);
-                  toast.error("Erro ao criar o post, tente novamente!");
-                });
-            }
-            // Buscar os posts para exibir atualizado na tela de posts
-          })
-          .catch(() => {
-            setIsLoading(false);
-            toast.error("Erro ao fazer upload da imagem");
-          }));
-      }
-    );
-
-    setIsLoading(false);
   };
 
   const getCurrentDate = (): string => {
@@ -130,6 +135,18 @@ function Navbar() {
     const currentMonth = String(date.getMonth() + 1).padStart(2, "0");
     const currentYear = date.getFullYear();
     return `${currentDay}/${currentMonth}/${currentYear}`;
+  };
+
+  const handleCloseModal = (): void => {
+    setIsLoading(false);
+    setPostTitleInput("");
+    setPostContentInput("");
+    setPostAuthorInput("");
+    setImgUrl("");
+    setProgress(0);
+    setIsNewPostFormValid(true);
+    setOpenModal(false);
+    setPostImgFile(null);
   };
 
   return (
@@ -191,7 +208,7 @@ function Navbar() {
           as="div"
           className="relative z-10"
           initialFocus={cancelButtonRef}
-          onClose={setOpenModal}
+          onClose={handleCloseModal}
         >
           <Transition.Child
             as={Fragment}
@@ -279,7 +296,11 @@ function Navbar() {
                           onChange={handlePostImageInput}
                           type="file"
                           placeholder="Digite o conteúdo"
-                          className="w-full cursor-pointer rounded-lg mt-2 p-2 bg-purple-700 focus:bg-purple-800 border-2 border-purple-800 focus:border-orange-700 focus:outline-none focus:placeholder-transparent"
+                          className={`w-full rounded-lg mt-2 p-2 ${
+                            isNewPostFormValid
+                              ? `bg-purple-700 focus:bg-purple-800 `
+                              : `bg-red-700  focus:bg-red-800`
+                          }  bg-purple-700 focus:bg-purple-800 border-2 border-purple-800 focus:border-orange-700 focus:outline-none focus:placeholder-transparent`}
                         />
                       </div>
 
@@ -303,7 +324,7 @@ function Navbar() {
                         {isLoading ? "Criando post..." : "Criar"}
                       </button>
                       <button
-                        onClick={() => setOpenModal(false)}
+                        onClick={handleCloseModal}
                         disabled={isLoading}
                         type="button"
                         className="w-full py-2 bg-red-500 shadow-lg  enabled:hover:shadow-red-500/40 text-white font-semibold rounded-lg disabled:bg-red-400 disabled:shadow-none enabled:shadow-red-500/50"
