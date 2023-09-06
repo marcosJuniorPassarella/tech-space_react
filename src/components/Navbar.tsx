@@ -1,4 +1,4 @@
-import React, { useState, useRef, Fragment } from "react";
+import React, { useState, useRef, Fragment, useContext } from "react";
 import { Transition, Dialog } from "@headlessui/react";
 import { toast } from "react-toastify";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
@@ -6,6 +6,7 @@ import { signOut } from "firebase/auth";
 import { auth, db, storage } from "../firebase/firebaseConection";
 import { Post } from "../models/interfaces/Post";
 import { addDoc, collection } from "firebase/firestore";
+import UserEmailContext from "../contexts/UserEmail";
 
 function Navbar() {
   const [isLoading, setIsLoading] = useState(false);
@@ -18,6 +19,7 @@ function Navbar() {
   const [postContentInput, setPostContentInput] = useState("");
   const [postImgFile, setPostImgFile] = useState<File | null>(null);
   const cancelButtonRef = useRef(null);
+  const { email } = useContext(UserEmailContext);
 
   const handleSignOut = async () => {
     await signOut(auth)
@@ -82,7 +84,7 @@ function Navbar() {
                 title: postTitleInput,
                 content: postContentInput,
                 imageUrl: url,
-                userEmail: "teste@teste.com",
+                userEmail: email,
                 creationDate: currentDate,
               };
 
