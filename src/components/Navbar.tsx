@@ -7,6 +7,7 @@ import { auth, db, storage } from "../firebase/firebaseConection";
 import { Post } from "../models/interfaces/Post";
 import { addDoc, collection } from "firebase/firestore";
 import UserEmailContext from "../contexts/UserEmail";
+import { CollectionsFirebase } from "../models/enums/collectionsFirebase";
 
 function Navbar() {
   const [isLoading, setIsLoading] = useState(false);
@@ -88,7 +89,10 @@ function Navbar() {
                   creationDate: currentDate,
                 };
 
-                await addDoc(collection(db, "posts"), postObject)
+                await addDoc(
+                  collection(db, CollectionsFirebase.POSTS),
+                  postObject
+                )
                   .then(() => {
                     setIsLoading(false);
                     setPostTitleInput("");
