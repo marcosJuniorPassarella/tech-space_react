@@ -4,6 +4,7 @@ import { Post } from "../models/interfaces/Post";
 import { DocumentData, collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase/firebaseConection";
 import { CollectionsFirebase } from "../models/enums/collectionsFirebase";
+import Posts from "../components/Posts";
 
 function Feed() {
   const [postsList, setPostsList] = useState<Array<Post>>([]);
@@ -19,7 +20,6 @@ function Feed() {
         }
 
         postsArray.length > 0 && setPostsList(postsArray as Array<Post>);
-        console.log("LISTA DE POSTS", postsList);
       }
     });
   };
@@ -30,7 +30,8 @@ function Feed() {
 
   return (
     <>
-      <Navbar />
+      <Navbar handleGetPosts={handleGetPosts} />
+      <Posts posts={postsList} />
     </>
   );
 }

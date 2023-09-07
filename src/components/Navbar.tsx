@@ -9,7 +9,7 @@ import { addDoc, collection } from "firebase/firestore";
 import UserEmailContext from "../contexts/UserEmail";
 import { CollectionsFirebase } from "../models/enums/collectionsFirebase";
 
-function Navbar() {
+function Navbar({ handleGetPosts }: { handleGetPosts: () => void }) {
   const [isLoading, setIsLoading] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [isNewPostFormValid, setIsNewPostFormValid] = useState(true);
@@ -125,6 +125,7 @@ function Navbar() {
             }));
         }
       );
+      handleGetPosts();
     } else {
       setIsLoading(false);
       setIsNewPostFormValid(false);
