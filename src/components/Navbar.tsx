@@ -104,6 +104,7 @@ function Navbar({ handleGetPosts }: { handleGetPosts: () => void }) {
                     setOpenModal(false);
                     setPostImgFile(null);
                     toast.success("Post criado com sucesso!");
+                    handleGetPosts();
                   })
                   .catch(() => {
                     setIsLoading(false);
@@ -125,7 +126,6 @@ function Navbar({ handleGetPosts }: { handleGetPosts: () => void }) {
             }));
         }
       );
-      handleGetPosts();
     } else {
       setIsLoading(false);
       setIsNewPostFormValid(false);
